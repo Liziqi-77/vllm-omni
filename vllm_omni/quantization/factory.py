@@ -41,6 +41,13 @@ def _build_int8(**kw: Any) -> QuantizationConfig:
     return DiffusionInt8Config(**kw)
 
 
+def _build_mxfp4(**kw: Any) -> QuantizationConfig:
+    """Lazy import for MXFP4 diffusion config (dequant+GEMM fallback)."""
+    from .mxfp4_config import DiffusionMxfp4Config
+
+    return DiffusionMxfp4Config(**kw)
+
+
 def _build_inc(**kw: Any) -> QuantizationConfig:
     """Lazy import for INC/AutoRound config with checkpoint kwarg normalization."""
     from vllm.model_executor.layers.quantization.inc import INCConfig
@@ -58,6 +65,7 @@ def _build_inc(**kw: Any) -> QuantizationConfig:
 _OVERRIDES: dict[str, Callable[..., QuantizationConfig]] = {
     "gguf": _build_gguf,
     "int8": _build_int8,
+    "mxfp4": _build_mxfp4,
     "inc": _build_inc,
     "auto-round": _build_inc,
 }

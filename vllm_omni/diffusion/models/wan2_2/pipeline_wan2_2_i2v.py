@@ -7,7 +7,7 @@ import logging
 import os
 import time
 from collections.abc import Iterable
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import PIL.Image
@@ -36,6 +36,9 @@ from vllm_omni.diffusion.profiler.diffusion_pipeline_profiler import DiffusionPi
 from vllm_omni.diffusion.request import OmniDiffusionRequest
 from vllm_omni.inputs.data import OmniTextPrompt
 from vllm_omni.platforms import current_omni_platform
+
+if TYPE_CHECKING:
+    from vllm.model_executor.layers.quantization.base_config import QuantizationConfig
 
 logger = logging.getLogger(__name__)
 DEBUG_PERF = False
@@ -225,10 +228,16 @@ class Wan22I2VPipeline(
         # Transformers (weights loaded via load_weights)
         # Load config from model directory or HF Hub to get correct in_channels for I2V models
         transformer_config = load_transformer_config(model, "transformer", local_files_only)
-        self.transformer = create_transformer_from_config(transformer_config)
+        self.transformer = create_transformer_from_config(
+            transformer_config,
+            quant_config=od_config.quantization_config,
+        )
         if self.has_transformer_2:
             transformer_2_config = load_transformer_config(model, "transformer_2", local_files_only)
-            self.transformer_2 = create_transformer_from_config(transformer_2_config)
+            self.transformer_2 = create_transformer_from_config(
+                transformer_2_config,
+                quant_config=od_config.quantization_config,
+            )
         else:
             self.transformer_2 = None
 
